@@ -1,0 +1,201 @@
+Country (Native / English),Code,Phone Code,Flag
+Afghanistan / Afghanistan,AF,+93,🇦🇫
+Shqipëri / Albania,AL,+355,🇦🇱
+الجزائر / Algeria,DZ,+213,🇩🇿
+Andorra / Andorra,AD,+376,🇦🇩
+Angola / Angola,AO,+244,🇦🇴
+Antigua and Barbuda / Antigua and Barbuda,AG,+1-268,🇦🇬
+Argentina / Argentina,AR,+54,🇦🇷
+Հայաստան / Armenia,AM,+374,🇦🇲
+Australia / Australia,AU,+61,🇦🇺
+Österreich / Austria,AT,+43,🇦🇹
+Azərbaycan / Azerbaijan,AZ,+994,🇦🇿
+The Bahamas / The Bahamas,BS,+1-242,🇧🇸
+البحرين / Bahrain,BH,+973,🇧🇭
+বাংলাদেশ / Bangladesh,BD,+880,🇧🇩
+Barbados / Barbados,BB,+1-246,🇧🇧
+Беларусь / Belarus,BY,+375,🇧🇾
+België / Belgium,BE,+32,🇧🇪
+Belize / Belize,BZ,+501,🇧🇿
+Bénin / Benin,BJ,+229,🇧🇯
+འབྲུག / Bhutan,BT,+975,🇧🇹
+Bolivia / Bolivia,BO,+591,🇧🇴
+Bosna i Hercegovina / Bosnia and Herzegovina,BA,+387,🇧🇦
+Botswana / Botswana,BW,+267,🇧🇼
+Brasil / Brazil,BR,+55,🇧🇷
+Brunei / Brunei,BN,+673,🇧🇳
+България / Bulgaria,BG,+359,🇧🇬
+Burkina Faso / Burkina Faso,BF,+226,🇧🇫
+Burundi / Burundi,BI,+257,🇧🇮
+កម្ពុជា / Cambodia,KH,+855,🇰🇭
+Cameroun / Cameroon,CM,+237,🇨🇲
+Canada / Canada,CA,+1,🇨🇦
+Cabo Verde / Cape Verde,CV,+238,🇨🇻
+République centrafricaine / Central African Republic,CF,+236,🇨🇫
+Tchad / Chad,TD,+235,🇹🇩
+Chile / Chile,CL,+56,🇨🇱
+中国 / China,CN,+86,🇨🇳
+Colombia / Colombia,CO,+57,🇨🇴
+Comores / Comoros,KM,+269,🇰🇲
+Congo / Congo (Brazzaville),CG,+242,🇨🇬
+République démocratique du Congo / Congo (Kinshasa),CD,+243,🇨🇩
+Costa Rica / Costa Rica,CR,+506,🇨🇷
+Hrvatska / Croatia,HR,+385,🇭🇷
+Cuba / Cuba,CU,+53,🇨🇺
+Κύπρος / Cyprus,CY,+357,🇨🇾
+Česko / Czechia,CZ,+420,🇨🇿
+Danmark / Denmark,DK,+45,🇩🇰
+Djibouti / Djibouti,DJ,+253,🇩🇯
+Dominica / Dominica,DM,+1-767,🇩🇲
+República Dominicana / Dominican Republic,DO,+1-809,🇩🇴
+Ecuador / Ecuador,EC,+593,🇪🇨
+مصر / Egypt,EG,+20,🇪🇬
+El Salvador / El Salvador,SV,+503,🇸🇻
+Guinea équatoriale / Equatorial Guinea,GQ,+240,🇬🇶
+Eritrea / Eritrea,ER,+291,🇪🇷
+Eesti / Estonia,EE,+372,🇪🇪
+Ethiopia / Ethiopia,ET,+251,🇪🇹
+Fiji / Fiji,FJ,+679,🇫🇯
+Suomi / Finland,FI,+358,🇫🇮
+France / France,FR,+33,🇫🇷
+Gabon / Gabon,GA,+241,🇬🇦
+Gambia / Gambia,GM,+220,🇬🇲
+საქართველო / Georgia,GE,+995,🇬🇪
+Deutschland / Germany,DE,+49,🇩🇪
+Ghana / Ghana,GH,+233,🇬🇭
+Ελλάδα / Greece,GR,+30,🇬🇷
+Grenada / Grenada,GD,+1-473,🇬🇩
+Guatemala / Guatemala,GT,+502,🇬🇹
+Guinée / Guinea,GN,+224,🇬🇳
+Guiné-Bissau / Guinea-Bissau,GW,+245,🇬🇼
+Guyana / Guyana,GY,+592,🇬🇾
+Haïti / Haiti,HT,+509,🇭🇹
+Honduras / Honduras,HN,+504,🇭🇳
+Magyarország / Hungary,HU,+36,🇭🇺
+Ísland / Iceland,IS,+354,🇮🇸
+भारत / India,IN,+91,🇮🇳
+Indonesia / Indonesia,ID,+62,🇮🇩
+ایران / Iran,IR,+98,🇮🇷
+العراق / Iraq,IQ,+964,🇮🇶
+Éire / Ireland,IE,+353,🇮🇪
+ישראל / Israel,IL,+972,🇮🇱
+Italia / Italy,IT,+39,🇮🇹
+Jamaica / Jamaica,JM,+1-876,🇯🇲
+日本 / Japan,JP,+81,🇯🇵
+الأردن / Jordan,JO,+962,🇯🇴
+Kazakhstan / Kazakhstan,KZ,+7,🇰🇿
+Kenya / Kenya,KE,+254,🇰🇪
+Kiribati / Kiribati,KI,+686,🇰🇮
+대한민국 / Korea,KR,+82,🇰🇷
+الكويت / Kuwait,KW,+965,🇰🇼
+Кыргызстан / Kyrgyzstan,KG,+996,🇰🇬
+ປະເທດລາວ / Laos,LA,+856,🇱🇦
+Latvija / Latvia,LV,+371,🇱🇻
+لبنان / Lebanon,LB,+961,🇱🇧
+Lesotho / Lesotho,LS,+266,🇱🇸
+Liberia / Liberia,LR,+231,🇱🇷
+ليبيا / Libya,LY,+218,🇱🇾
+Liechtenstein / Liechtenstein,LI,+423,🇱🇮
+Lietuva / Lithuania,LT,+370,🇱🇹
+Luxembourg / Luxembourg,LU,+352,🇱🇺
+Македонија / North Macedonia,MK,+389,🇲🇰
+Madagasikara / Madagascar,MG,+261,🇲🇬
+Malawi / Malawi,MW,+265,🇲🇼
+Malaysia / Malaysia,MY,+60,🇲🇾
+Maldives / Maldives,MV,+960,🇲🇻
+Mali / Mali,ML,+223,🇲🇱
+Malta / Malta,MT,+356,🇲🇹
+Aolepān / Marshall Islands,MH,+692,🇲🇭
+Mauritanie / Mauritania,MR,+222,🇲🇷
+Mauritius / Mauritius,MU,+230,🇲🇺
+México / Mexico,MX,+52,🇲🇽
+Micronesia / Micronesia,FM,+691,🇫🇲
+Moldova / Moldova,MD,+373,🇲🇩
+Monaco / Monaco,MC,+377,🇲🇨
+Монгол улс / Mongolia,MN,+976,🇲🇳
+Montenegro / Montenegro,ME,+382,🇲🇪
+Maroc / Morocco,MA,+212,🇲🇦
+Moçambique / Mozambique,MZ,+258,🇲🇿
+မြန်မာ / Myanmar,MM,+95,🇲🇲
+Namibia / Namibia,NA,+264,🇳🇦
+नेपाल / Nepal,NP,+977,🇳🇵
+Nederland / Netherlands,NL,+31,🇳🇱
+New Zealand / New Zealand,NZ,+64,🇳🇿
+Nicaragua / Nicaragua,NI,+505,🇳🇮
+Niger / Niger,NE,+227,🇳🇪
+Nigeria / Nigeria,NG,+234,🇳🇬
+Norge / Norway,NO,+47,🇳🇴
+Oman / Oman,OM,+968,🇴🇲
+پاکستان / Pakistan,PK,+92,🇵🇰
+Palau / Palau,PW,+680,🇵🇼
+Panamá / Panama,PA,+507,🇵🇦
+Papua New Guinea / Papua New Guinea,PG,+675,🇵🇬
+Paraguay / Paraguay,PY,+595,🇵🇾
+Perú / Peru,PE,+51,🇵🇪
+Philippines / Philippines,PH,+63,🇵🇭
+Polska / Poland,PL,+48,🇵🇱
+Portugal / Portugal,PT,+351,🇵🇹
+قطر / Qatar,QA,+974,🇶🇦
+România / Romania,RO,+40,🇷🇴
+Россия / Russia,RU,+7,🇷🇺
+Rwanda / Rwanda,RW,+250,🇷🇼
+Saint Kitts and Nevis / Saint Kitts and Nevis,KN,+1-869,🇰🇳
+Saint Lucia / Saint Lucia,LC,+1-758,🇱🇨
+Saint Vincent and the Grenadines / Saint Vincent and the Grenadines,VC,+1-784,🇻🇨
+Samoa / Samoa,WS,+685,🇼🇸
+San Marino / San Marino,SM,+378,🇸🇲
+São Tomé e Príncipe / São Tomé and Príncipe,ST,+239,🇸🇹
+السعودية / Saudi Arabia,SA,+966,🇸🇦
+Sénégal / Senegal,SN,+221,🇸🇳
+Србија / Serbia,RS,+381,🇷🇸
+Seychelles / Seychelles,SC,+248,🇸🇨
+Sierra Leone / Sierra Leone,SL,+232,🇸🇱
+Singapore / Singapore,SG,+65,🇸🇬
+Slovensko / Slovakia,SK,+421,🇸🇰
+Slovenija / Slovenia,SI,+386,🇸🇮
+Solomon Islands / Solomon Islands,SB,+677,🇸🇧
+Somalia / Somalia,SO,+252,🇸🇴
+South Africa / South Africa,ZA,+27,🇿🇦
+South Sudan / South Sudan,SS,+211,🇸🇸
+España / Spain,ES,+34,🇪🇸
+Sri Lanka / Sri Lanka,LK,+94,🇱🇰
+السودان / Sudan,SD,+249,🇸🇩
+Suriname / Suriname,SR,+597,🇸🇷
+Eswatini / Eswatini,SZ,+268,🇸🇿
+Sverige / Sweden,SE,+46,🇸🇪
+Schweiz / Switzerland,CH,+41,🇨🇭
+سوريا / Syria,SY,+963,🇸🇾
+台灣 / Taiwan,TW,+886,🇹🇼
+Tajikistan / Tajikistan,TJ,+992,🇹🇯
+Tanzania / Tanzania,TZ,+255,🇹🇿
+ไทย / Thailand,TH,+66,🇹🇭
+Togo / Togo,TG,+228,🇹🇬
+Tonga / Tonga,TO,+676,🇹🇴
+Trinidad and Tobago / Trinidad and Tobago,TT,+1-868,🇹🇹
+Tunisia / Tunisia,TN,+216,🇹🇳
+Türkiye / Turkey,TR,+90,🇹🇷
+Türkmenistan / Turkmenistan,TM,+993,🇹🇲
+Tuvalu / Tuvalu,TV,+688,🇹🇻
+Uganda / Uganda,UG,+256,🇺🇬
+Україна / Ukraine,UA,+380,🇺🇦
+الإمارات / United Arab Emirates,AE,+971,🇦🇪
+United Kingdom / United Kingdom,GB,+44,🇬🇧
+United States / United States,US,+1,🇺🇸
+Uruguay / Uruguay,UY,+598,🇺🇾
+Oʻzbekiston / Uzbekistan,UZ,+998,🇺🇿
+Vanuatu / Vanuatu,VU,+678,🇻🇺
+Vaticano / Vatican City,VA,+379,🇻🇦
+Venezuela / Venezuela,VE,+58,🇻🇪
+Việt Nam / Vietnam,VN,+84,🇻🇳
+اليمن / Yemen,YE,+967,🇾🇪
+Zambia / Zambia,ZM,+260,🇿🇲
+Zimbabwe / Zimbabwe,ZW,+263,🇿🇼
+香港 / Hong Kong,HK,+852,🇭🇰
+澳门 / Macau,MO,+853,🇲🇴
+Åland / Åland Islands,AX,+358,🇦🇽
+Guernsey / Guernsey,GG,+44,🇬🇬
+Jersey / Jersey,JE,+44,🇯🇪
+Isle of Man / Isle of Man,IM,+44,🇮🇲
+Puerto Rico / Puerto Rico,PR,+1-787,🇵🇷
+Greenland / Greenland,GL,+299,🇬🇱
+Faroe Islands / Faroe Islands,FO,+298,🇫🇴
