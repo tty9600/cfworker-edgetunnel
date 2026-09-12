@@ -34,9 +34,6 @@
 //  X25519    0x001d (29)
 //  SECP256R1 0x0017 (23)
 
-const uint64be = (x) => (x&0xff)<<56|(x&0xff00)<<40|(x&0xff0000)<<24|(x&0xff000000)<<8
-  |(x&0xff00000000)>>8|(x&0xff0000000000)>>24|(x&0xff000000000000)>>40
-  |(x&0xff00000000000000)>>56;
 const uint24be = (x) => (x&0xff)<<16|(x&0xff00)|(x&0xff0000)>>16;
 const uint16be = (x) => (x&0xff)<<8|(x&0xff00)>>8;
 const uint16bearr8 = (arr) => new Uint8Array(new Uint16Array(arr).map(uint16be).buffer);
