@@ -4,6 +4,7 @@ proxy protocol.
  > Support NAT64/ProxyIP to bypass Cloudflare CDN network restrictions.
  > UDP only support DNS 53 port.
  > Flow control can be used to alleviate CPU time limits.
+ > Supported transport stream modes: WebSocket and XHTTP stream-one (grpc).
 
 Intention
 
@@ -54,6 +55,7 @@ Variable
 
  ws_path config prefix64: /?ed=2048&prefix64=2602:fc59:11:64::
  ws_path config proxyip: /?ed=2048&prefix64=&proxyip=<ProxyIP>&proxyip_port=
+ xhttp_path: /xhttp
 
 Tools
 

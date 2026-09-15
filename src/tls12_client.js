@@ -501,7 +501,7 @@ export class HTTP_Reader { /* http1.1 response reader */
     this.start_status = false;
   }
   start() {
-    const x = new TextDecoder().decode(this.buffer);
+    const x = textdecode(this.buffer);
     const e = x.match(/\r\n\r\n/); if (!e) return false;
     const y = x.slice(0, e?.index);
     this.request_status = y.split("\r\n")[0];
@@ -525,7 +525,7 @@ export class HTTP_Reader { /* http1.1 response reader */
     if (!this.start_status) return null;
     const buffer = this.buffer;
     if (this.header.get("Transfer-Encoding") == "chunked") {
-      const x = new TextDecoder().decode(buffer.slice(0, 24));
+      const x = textdecode(buffer.slice(0, 24));
       const e = x.match(/^([0-9A-Fa-f]+)\r\n(\r\n)?/); if (!e) return null;
       const n = parseInt('0x' + e?.[1]);
       if (Number.isNaN(n)) throw new Error("chunked header length error");
