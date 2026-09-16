@@ -51,15 +51,15 @@ Variable
  opt_flowu_ctl < env.opt_flowu_ctl < url flowu_ctl -- empty value default
  opt_flowd_ctl < env.opt_flowd_ctl < url flowd_ctl -- empty value default
 
- is_fproxyip=1 -- force use nat64/proxyip (test use, all traffic is relayed through nat64)
+ is_fproxyip=1 -- force use nat64/proxyip (all traffic is relayed through nat64)
 
  ws_path config prefix64: /?ed=2048&prefix64=2602:fc59:11:64::
  ws_path config proxyip: /?ed=2048&prefix64=&proxyip=<ProxyIP>&proxyip_port=
- xhttp_path: /xhttp
+ xhttp_path: /xhttp/
 
 Tools
 
- clash-proxy-yaml.sh -- generate the Clash proxy YAML config
+ proxy-config.sh -- generate the proxy config for Clash and V2ray for Workers
 
 Src
 
