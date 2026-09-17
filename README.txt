@@ -64,7 +64,6 @@ Tools
 Src
 
  ref_worker.js    -- Reference implementation
- _worker.js       -- The _worker.js of merged and compressed
  worker.js        -- Edge tunnel implementation with speed limit
  tls12_client.js  -- A simple implementation of TLSv1.2 client
  tls12_example.js -- Test example of TLSv1.2 client on NodeJS

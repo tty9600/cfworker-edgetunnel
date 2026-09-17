@@ -158,7 +158,7 @@ async function tcpsocket_connect(obj, host, port) {
 async function remote_pipe(obj, remote_stream, down_writable, data) {
   const writer = remote_stream.socket.writable.getWriter();
   try { await writer.write(data); } finally { writer.releaseLock(); }
-  await remote_stream.socket.readable.pipeTo(new WritableStream({
+  remote_stream.socket.readable.pipeTo(new WritableStream({
     async write(chunk) { await down_writable.write(chunk); },
     close() { console.log("remote pipe stream close"); down_writable.close(); }
   })).catch((error) => {
@@ -198,7 +198,7 @@ async function stream_pipetwo(obj, readable, writable) {
     } catch (error) { console.log("writable pipetwo error", error); down_close(); }
   };
   const down_writable = { close: down_close, write: down_write };
-  const up_pipeto = readable.pipeTo(new WritableStream({ /* upload */
+  readable.pipeTo(new WritableStream({ /* upload */
     async write(chunk) {
       if (remote_stream.writer) { /* to remote */
         return remote_stream.writer.write(chunk);
@@ -229,7 +229,7 @@ async function stream_pipetwo(obj, readable, writable) {
         dns_handle(obj, remote_stream, down_writable);
         return remote_stream.writer.write(buffer.buffer);
       } /* tcp */
-      remote_pipe(obj, remote_stream, down_writable, buffer.buffer);
+      await remote_pipe(obj, remote_stream, down_writable, buffer.buffer);
     },
     close() { console.log("readable pipetwo close"); remote_close(); },
     abort(reason) { console.log("readable pipetwo abort", reason); }
