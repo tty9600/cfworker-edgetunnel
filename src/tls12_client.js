@@ -494,7 +494,8 @@ export class TLS12_Client {
 export class HTTP_Reader { /* http1.1 response reader */
   constructor() {
     this.buffer = new Uint8Array(0);
-    this.request_status = null;
+    this.status_code = null;
+    this.reason_phrase = null;
     this.header = new Map();
     this.content_length = 0;
     this.length = 0;
@@ -504,7 +505,8 @@ export class HTTP_Reader { /* http1.1 response reader */
     const x = textdecode(this.buffer);
     const e = x.match(/\r\n\r\n/); if (!e) return false;
     const y = x.slice(0, e?.index);
-    this.request_status = y.split("\r\n")[0];
+    const s = y.split("\r\n")[0].match(/^HTTP\/1.1 (\d+) (.*$)/);
+    this.status_code = s?.[1]; this.reason_phrase = s?.[2];
     for (const h of y.split("\r\n").slice(1)) {
       const w = h.match(/: /); const k = h.slice(0, w?.index);
       const v = h.slice(w?.index + 2); this.header.set(k, v);
