@@ -9576,11 +9576,11 @@ clash_ws_node() {
     uuid: $uuid
     udp: true
     tls: true
-    client-fingerprint: chrome
     servername: $host
+    client-fingerprint: chrome
     network: ws
     ws-opts:
-      path: "/?ed=2048$url_params"
+      path: /?ed=2048$url_params
       headers:
         Host: $host
 EOF
@@ -9601,14 +9601,16 @@ clash_xhttp_node() {
     uuid: $uuid
     udp: true
     tls: true
-    client-fingerprint: chrome
     servername: $host
+    alpn:
+      - h3
+      - h2
+    client-fingerprint: chrome
     network: xhttp
-    alpn: [ h2, h3 ]
     xhttp-opts:
-      path: "/xhttp/${url_params/&/?}"
+      path: /xhttp/${url_params/&/?}
       host: $host
-      mode: "stream-one"
+      mode: stream-one
 EOF
 	test "x$is_ech" = "x1" && cat <<EOF
     ech-opts:
@@ -9622,8 +9624,6 @@ v2ray_ws_node() {
 	params=$(url_setparam "$params" "type" "ws")
 	params=$(url_setparam "$params" "host" "$host")
 	params=$(url_setparam "$params" "path" "/?ed=2048${url_params}")
-	params=$(url_setparam "$params" "encryption" "none")
-	params=$(url_setparam "$params" "insecure" "0")
 	params=$(url_setparam "$params" "fp" "chrome")
 	params=$(url_setparam "$params" "security" "tls")
 	params=$(url_setparam "$params" "alpn" "http/1.1")
@@ -9642,8 +9642,6 @@ v2ray_xhttp_node() {
 	params=$(url_setparam "$params" "mode" "stream-one")
 	params=$(url_setparam "$params" "host" "$host")
 	params=$(url_setparam "$params" "path" "/xhttp/${url_params/&/?}")
-	params=$(url_setparam "$params" "encryption" "none")
-	params=$(url_setparam "$params" "insecure" "0")
 	params=$(url_setparam "$params" "fp" "chrome")
 	params=$(url_setparam "$params" "security" "tls")
 	params=$(url_setparam "$params" "alpn" "h3,h2")
@@ -9688,29 +9686,20 @@ EOF
 
 	for i in $opt_nodes; do
 		b=$(url_decode "$i")
-		read opt_name opt_type opt_preip opt_port opt_prefix64 \
-			opt_proxyip opt_proxyport opt_isech opt_urlparams <<EOF
+		read opt_name opt_type opt_preip opt_port opt_proxy \
+			opt_isech opt_urlparams <<EOF
 $b
 EOF
-		opt_name="${opt_name#/}"
-		opt_type="${opt_type#/}"
-		opt_preip="${opt_preip#/}"
-		opt_port="${opt_port#/}"
-		opt_prefix64="${opt_prefix64#/}"
-		opt_proxyip="${opt_proxyip#/}"
-		opt_proxyport="${opt_proxyport#/}"
-		opt_isech="${opt_isech#/}"
+		opt_name=$(url_decode "${opt_name#/}")
+		opt_type=$(url_decode "${opt_type#/}")
+		opt_preip=$(url_decode "${opt_preip#/}")
+		opt_port=$(url_decode "${opt_port#/}")
+		opt_proxy=$(url_decode "${opt_proxy#/}")
+		opt_isech=$(url_decode "${opt_isech#/}")
 		opt_urlparams=$(url_decode "${opt_urlparams#/}")
 
-		if test "x$opt_prefix64" != "x"; then
-			opt_urlparams=$(url_setparam "$opt_urlparams" "prefix64" "$opt_prefix64")
-		else
-			if test "x$opt_proxyip" != "x"; then
-				opt_urlparams=$(url_setparam "$opt_urlparams" "proxyip" "$opt_proxyip")
-			fi
-			if test "x$opt_proxyport" != "x"; then
-				opt_urlparams=$(url_setparam "$opt_urlparams" "proxyip_port" "$opt_proxyport")
-			fi
+		if test "x$opt_proxy" != "x"; then
+			opt_urlparams=$(url_setparam "$opt_urlparams" "proxy" "$opt_proxy")
 		fi
 
 		if test "x$opt_type" = "xws"; then
@@ -9731,8 +9720,8 @@ EOF
 
 	for i in $opt_nodes; do
 		b=$(url_decode "$i")
-		read opt_name opt_type opt_preip opt_port opt_prefix64 \
-			opt_proxyip opt_proxyport opt_isech opt_urlparams <<EOF
+		read opt_name opt_type opt_preip opt_port opt_proxy \
+			opt_isech opt_urlparams <<EOF
 $b
 EOF
 		opt_name="${opt_name#/}"
@@ -9769,29 +9758,20 @@ EOF
 generate_v2ray_config() {
 	for i in $opt_nodes; do
 		b=$(url_decode "$i")
-		read opt_name opt_type opt_preip opt_port opt_prefix64 \
-			opt_proxyip opt_proxyport opt_isech opt_urlparams <<EOF
+		read opt_name opt_type opt_preip opt_port opt_proxy \
+			opt_isech opt_urlparams <<EOF
 $b
 EOF
-		opt_name="${opt_name#/}"
-		opt_type="${opt_type#/}"
-		opt_preip="${opt_preip#/}"
-		opt_port="${opt_port#/}"
-		opt_prefix64="${opt_prefix64#/}"
-		opt_proxyip="${opt_proxyip#/}"
-		opt_proxyport="${opt_proxyport#/}"
-		opt_isech="${opt_isech#/}"
+		opt_name=$(url_decode "${opt_name#/}")
+		opt_type=$(url_decode "${opt_type#/}")
+		opt_preip=$(url_decode "${opt_preip#/}")
+		opt_port=$(url_decode "${opt_port#/}")
+		opt_proxy=$(url_decode "${opt_proxy#/}")
+		opt_isech=$(url_decode "${opt_isech#/}")
 		opt_urlparams=$(url_decode "${opt_urlparams#/}")
 
-		if test "x$opt_prefix64" != "x"; then
-			opt_urlparams=$(url_setparam "$opt_urlparams" "prefix64" "$opt_prefix64")
-		else
-			if test "x$opt_proxyip" != "x"; then
-				opt_urlparams=$(url_setparam "$opt_urlparams" "proxyip" "$opt_proxyip")
-			fi
-			if test "x$opt_proxyport" != "x"; then
-				opt_urlparams=$(url_setparam "$opt_urlparams" "proxyip_port" "$opt_proxyport")
-			fi
+		if test "x$opt_proxy" != "x"; then
+			opt_urlparams=$(url_setparam "$opt_urlparams" "proxy" "$opt_proxy")
 		fi
 
 		if test "x$opt_type" = "xws"; then
@@ -9817,9 +9797,7 @@ Usages: $0 <OPTIONS...>
    -xhttp                                   using XHTTP stream-one
    -443,8443,2053,2087,2096,2083            https port (default 443)
    -preip <addr>                            preferred address
-   -prefix64 <prefix>                       NAT64 prefix address
-   -proxyip <addr>                          reverse proxyip
-   -proxyport <port>                        reverse proxyip port
+   -proxy <url>                             proxy url parameters
    -isech                                   enable tls1.3 ECH (encrypted client hello)
    -urlparam <key> <val>                    add URL parameters
  --end                                     end of node config
@@ -9827,6 +9805,11 @@ Usages: $0 <OPTIONS...>
  --v2ray                                   make V2ray configuration
  --no-rules                                no output Clash rules
  -h,-?,--help                              display help
+
+ Proxy url parameters:
+  proxyip://[<addr>[:<port>]]/[prefix64=<prefix>]/[all=[1]]
+  http://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
+  socks5://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
 
  Example of use:
   ./proxy-config.sh --uuid 98f475f4-bd96-49f6-98af-9e16103b5ec2 \\
@@ -9840,6 +9823,7 @@ Usages: $0 <OPTIONS...>
        -xhttp \\
        -name 104.18.13.229-US \\
        -preip 104.18.13.229 \\
+       -proxy proxyip:///proxy=2602:fc59:11:64:: \\
      --end \\
      --v2ray
 
@@ -9858,12 +9842,8 @@ main() {
 	opt_https_port=
 	is_opt_preip_status=0
 	opt_preip=
-	is_opt_prefix64_status=0
-	opt_prefix64=
-	is_opt_proxyip_status=0
-	opt_proxyip=
-	is_opt_proxyport_status=0
-	opt_proxyport=
+	is_opt_proxy_status=0
+	opt_proxy=
 	is_opt_host_status=0
 	is_opt_isech_status=0
 	is_opt_urlparam_status=0
@@ -9895,19 +9875,9 @@ main() {
 			is_opt_preip_status=2
 			continue
 		fi
-		if test "x$is_opt_prefix64_status" = "x1"; then
-			opt_prefix64="$i"
-			is_opt_prefix64_status=2
-			continue
-		fi
-		if test "x$is_opt_proxyip_status" = "x1"; then
-			opt_proxyip="$i"
-			is_opt_proxyip_status=2
-			continue
-		fi
-		if test "x$is_opt_proxyport_status" = "x1"; then
-			opt_proxyport="$i"
-			is_opt_proxyport_status=2
+		if test "x$is_opt_proxy_status" = "x1"; then
+			opt_proxy="$i"
+			is_opt_proxy_status=2
 			continue
 		fi
 		if test "x$is_opt_urlparam_status" = "x1"; then
@@ -10002,38 +9972,16 @@ main() {
 			fi
 			is_opt_preip_status=1
 		;;
-		-prefix64)
+		-proxy)
 			if test "x$is_opt_start_status" != "x1"; then
 				usages "need to --start range ?'$i'"
 				return 1
 			fi
-			if test "x$is_opt_prefix64_status" = "x2"; then
+			if test "x$is_opt_proxy_status" = "x2"; then
 				usages "option repeat ?'$i'"
 				return 1
 			fi
-			is_opt_prefix64_status=1
-		;;
-		-proxyip)
-			if test "x$is_opt_start_status" != "x1"; then
-				usages "need to --start range ?'$i'"
-				return 1
-			fi
-			if test "x$is_opt_proxyip_status" = "x2"; then
-				usages "option repeat ?'$i'"
-				return 1
-			fi
-			is_opt_proxyip_status=1
-		;;
-		-proxyport)
-			if test "x$is_opt_start_status" != "x1"; then
-				usages "need to --start range ?'$i'"
-				return 1
-			fi
-			if test "x$is_opt_proxyport_status" = "x2"; then
-				usages "option repeat ?'$i'"
-				return 1
-			fi
-			is_opt_proxyport_status=1
+			is_opt_proxy_status=1
 		;;
 		-isech)
 			if test "x$is_opt_start_status" != "x1"; then
@@ -10103,11 +10051,7 @@ main() {
 			b="$b /$a"
 			a=$(url_encode "$opt_https_port")
 			b="$b /$a"
-			a=$(url_encode "$opt_prefix64")
-			b="$b /$a"
-			a=$(url_encode "$opt_proxyip")
-			b="$b /$a"
-			a=$(url_encode "$opt_proxyport")
+			a=$(url_encode "$opt_proxy")
 			b="$b /$a"
 			a=$(url_encode "$is_opt_isech_status")
 			b="$b /$a"
@@ -10124,12 +10068,8 @@ main() {
 			opt_https_port=
 			is_opt_preip_status=0
 			opt_preip=
-			is_opt_prefix64_status=0
-			opt_prefix64=
-			is_opt_proxyip_status=0
-			opt_proxyip=
-			is_opt_proxyport_status=0
-			opt_proxyport=
+			is_opt_proxy_status=0
+			opt_proxy=
 			is_opt_urlparam_status=0
 			opt_urlparams=
 		;;
@@ -10182,21 +10122,9 @@ main() {
 			return 1
 		fi
 	fi
-	if test "x$is_opt_prefix64_status" != "x0"; then
-		if test "x$is_opt_prefix64_status" != "x2"; then
-			usages "option '-prefix64' incomplete"
-			return 1
-		fi
-	fi
-	if test "x$is_opt_proxyip_status" != "x0"; then
-		if test "x$is_opt_proxyip_status" != "x2"; then
-			usages "option '-proxyip' incomplete"
-			return 1
-		fi
-	fi
-	if test "x$is_opt_proxyport_status" != "x0"; then
-		if test "x$is_opt_proxyport_status" != "x2"; then
-			usages "option '-proxyport' incomplete"
+	if test "x$is_opt_proxy_status" != "x0"; then
+		if test "x$is_opt_proxy_status" != "x2"; then
+			usages "option '-proxy' incomplete"
 			return 1
 		fi
 	fi

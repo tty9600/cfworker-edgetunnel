@@ -17,12 +17,11 @@
 
 import { connect } from "cloudflare:sockets";
 import { TLS12_Client, HTTP_Reader } from "./tls12_client.js";
+import { HTTP_Tunnel, Socks5_Tunnel } from "./tunnel_client.js";
 
 const opt_uuid = "98f475f4-bd96-49f6-98af-9e16103b5ec2";
 const opt_dohurl = "https://dns.google/dns-query";
-const opt_prefix64 = "";
-const opt_proxyip = "172.71.218.190";
-const opt_proxyip_port = "";
+const opt_proxy = "proxyip://172.71.218.190";
 const opt_flowu_ctl = "1M";
 const opt_flowd_ctl = "1M";
 
@@ -57,15 +56,6 @@ function flow_step(totals) { /* sleep */
   }; return new Promise(resolve => setTimeout(resolve, delay()));
 }
 
-function get_proxyip(obj) {
-  return obj.proxyip64 || obj.proxyip || null;
-}
-
-function get_proxyip_port(obj) {
-  if (obj.proxyip64 || !obj.proxyip || !obj.proxyip_port) return null;
-  return parseInt(obj.proxyip_port) || null;
-}
-
 async function get_domain_v4(domain) {
   try {
     const resp = await fetch(`https://dns.google/resolve?name=${domain}&type=A`,
@@ -78,14 +68,14 @@ async function get_domain_v4(domain) {
   return null;
 }
 
-async function set_proxyip64(obj, host, type) { /* nat64 */
-  obj.proxyip64 = null; if (!obj.prefix64) return;
+async function get_proxyip64(prefix64, host, type) { /* nat64 */
+  if (!prefix64) return null;
   switch (type) {
     case 2: host = await get_domain_v4(host); if (!host) break;
     case 1: const s = new Uint8Array(host.split('.'));
       const a = Array.from(s).map(byte => byte.toString(16).padStart(2, '0'));
-      obj.proxyip64 = `[${obj.prefix64}${a[0]}${a[1]}:${a[2]}${a[3]}]`;
-  }
+      return `[${prefix64}${a[0]}${a[1]}:${a[2]}${a[3]}]`;
+  } return null;
 }
 
 function vls_parse(header, uuid) {
@@ -110,6 +100,65 @@ function vls_parse(header, uuid) {
         .padStart(4, '0')); } h = '[' + h.join(':') + ']'; f += 4; break;
   } if (!h) return { error: true, message: "invalid address" };
   return { error: false, version: v, is_udp: y, type: t, host: h, port: p, offset: f };
+}
+
+function get_proxy_params(url) {
+  if (url) {
+    try { const u = new URL(url);
+      const params = new Map(); params.set("type", u.protocol.split(":")[0]);
+      params.set("host", u.hostname); params.set("port", u.port);
+      for (const k of u.pathname.split("/").slice(1)) {
+        if (!k) continue; const p = k.match(/^([^=]*)=(.*$)/);
+        if (!p?.[1]) continue; params.set(p?.[1], p?.[2]);
+      } return params;
+    } catch (error) { console.log("proxy params error", error); }
+  } return new Map();
+}
+
+async function tcpsocket_connect(obj, host, port, type) {
+  const tcpsocket = async (host, port) => {
+    console.log(`tcpsocket connect to ${host} ${port}`);
+    const socket = connect({ hostname: host, port: port });
+    await socket.opened; return socket;
+  }
+  const params = get_proxy_params(obj.proxy);
+  const url_host = params.get("host"), url_port = params.get("port");
+  const url_all = params.get("all"), url_prefix64 = params.get("prefix64");
+  const proxy_connect = async () => {
+    const url_user = params.get("user"), url_pass = params.get("pass");
+    switch (params.get("type")) {
+      case "http": { console.log("http tunnel connection");
+        const socket = await tcpsocket(url_host, url_port);
+        return await HTTP_Tunnel(socket, host, port, url_user, url_pass);
+      }
+      case "socks5": { console.log("socks5 tunnel connection");
+        const socket = await tcpsocket(url_host, url_port);
+        return await Socks5_Tunnel(socket, host, port, url_user, url_pass);
+      }
+      case "proxyip": { console.log("proxyip connection");
+        const proxyip64 = await get_proxyip64(url_prefix64, host, type);
+        host = proxyip64 || url_host || host;
+        if (!proxyip64) port = url_port || port;
+        return await tcpsocket(host, port);
+      }
+    } return null;
+  };
+  if (url_all) { /* proxy all traffic */
+    try { return await proxy_connect(); } catch { return null; }
+  } try { return await tcpsocket(host, port); } catch { /* retry */
+    try { return await proxy_connect(); } catch { return null; }
+  }
+}
+
+async function remote_pipe(obj, remote_stream, down_writable, data) {
+  const writer = remote_stream.socket.writable.getWriter();
+  try { await writer.write(data); } finally { writer.releaseLock(); }
+  remote_stream.socket.readable.pipeTo(new WritableStream({
+    async write(chunk) { await down_writable.write(chunk); },
+    close() { console.log("remote pipe stream close"); down_writable.close(); }
+  })).catch((error) => {
+    console.log("remote pipe stream error", error); down_writable.close();
+  });
 }
 
 async function dns_handle(obj, remote_stream, down_writable) {
@@ -138,32 +187,6 @@ async function dns_handle(obj, remote_stream, down_writable) {
       console.log("readable dns query close"); down_writable.close();
     } })).catch((error) => { console.log("readable dns query error", error); });
   remote_stream.writer = transform.writable.getWriter();
-}
-
-async function tcpsocket_connect(obj, host, port) {
-  if (obj.is_fproxyip) host = get_proxyip(obj) || host;
-  const tcpsocket = async (host, port) => {
-    console.log(`tcpsocket connect to ${host} ${port}`);
-    const socket = connect({ hostname: host, port: port });
-    await socket.opened; return socket;
-  }
-  try { return await tcpsocket(host, port); } catch { /* retry */
-    host = get_proxyip(obj) || host; port = get_proxyip_port(obj) || port;
-    try {
-      console.log("retry! tcpsocket connection"); return await tcpsocket(host, port);
-    } catch { return null; }
-  }
-}
-
-async function remote_pipe(obj, remote_stream, down_writable, data) {
-  const writer = remote_stream.socket.writable.getWriter();
-  try { await writer.write(data); } finally { writer.releaseLock(); }
-  remote_stream.socket.readable.pipeTo(new WritableStream({
-    async write(chunk) { await down_writable.write(chunk); },
-    close() { console.log("remote pipe stream close"); down_writable.close(); }
-  })).catch((error) => {
-    console.log("remote pipe stream error", error); down_writable.close();
-  });
 }
 
 async function stream_pipetwo(obj, readable, writable) {
@@ -218,8 +241,7 @@ async function stream_pipetwo(obj, readable, writable) {
         if (vls.is_udp) {
           if (vls.port !== 53) throw "UDP only support DNS query"; is_dns = true;
         } else { /* tcp socket */
-          await set_proxyip64(obj, vls.host, vls.type);
-          remote_stream.socket = await tcpsocket_connect(obj, vls.host, vls.port);
+          remote_stream.socket = await tcpsocket_connect(obj, vls.host, vls.port, vls.type);
           if (!remote_stream.socket) throw "tcpsocket connection failed";
         }
       } catch (error) { console.log(error); throw error; }
@@ -291,19 +313,11 @@ function set_params(env, url) {
   const obj = {}, params = url.searchParams;
   obj.uuid = env.opt_uuid || opt_uuid;
   obj.dohurl = env.opt_dohurl || opt_dohurl;
-  obj.prefix64 = env.opt_prefix64 || opt_prefix64;
-  obj.proxyip = env.opt_proxyip || opt_proxyip;
-  obj.proxyip_port = env.opt_proxyip_port || opt_proxyip_port;
+  obj.proxy = env.opt_proxy || opt_proxy;
   obj.flowu_ctl = env.opt_flowu_ctl || opt_flowu_ctl;
   obj.flowd_ctl = env.opt_flowd_ctl || opt_flowd_ctl;
-  const prefix64 = params.get("prefix64"); if (prefix64 != null) {
-    console.log("url param prefix64:", prefix64); obj.prefix64 = prefix64;
-  } const proxyip = params.get("proxyip"); if (proxyip != null) {
-    console.log("url param proxyip:", proxyip); obj.proxyip = proxyip;
-  } const proxyip_port = params.get("proxyip_port"); if (proxyip_port != null) {
-    console.log("url param proxyip_port:", proxyip_port); obj.proxyip_port = proxyip_port;
-  } const is_fproxyip = params.get("is_fproxyip"); if (is_fproxyip === "1") {
-    console.log("url param is_fproxyip:", is_fproxyip); obj.is_fproxyip = is_fproxyip;
+  const proxy = params.get("proxy"); if (proxy != null) {
+    console.log("url param proxy:", proxy); obj.proxy = proxy;
   } const flowu_ctl = params.get("flowu_ctl"); if (flowu_ctl != null) {
     console.log("url param flowu_ctl:", flowu_ctl); obj.flowu_ctl = flowu_ctl;
   } const flowd_ctl = params.get("flowd_ctl"); if (flowd_ctl != null) {

@@ -38,23 +38,28 @@ Variable
  |-----------------|------------------------------------------|
  |opt_uuid         |vless userid                              |
  |opt_dohurl       |used for UDP:53 dns query (DoH)           |
- |opt_prefix64     |nat64 proxy prefix ip                     |
- |opt_proxyip      |reverse proxy ip                          |
- |opt_proxyip_port |reverse proxy port                        |
+ |opt_proxy        |proxy url parameter                       |
  |opt_flowu_ctl    |flow upload control threshold (byte/K/M)  |
  |opt_flowd_ctl    |flow download control threshold (byte/K/M)|
 
- opt_prefix64 < env.opt_prefix64 < url prefix64 -- empty value disable nat64
- opt_proxyip < env.opt_proxyip < url proxyip < NAT64 -- empty value disable proxyip
- opt_proxyip_port < env.opt_proxyip_port < url proxyip_port -- empty value use remote
+ opt_proxy < env.opt_proxy < url proxy -- empty disable proxy
+
+ proxyip://[<addr>[:<port>]]/[prefix64=<prefix>]/[all=[1]]
+ http://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
+ socks5://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
+
+ all=1             -- global proxy all traffic
+ user=username     -- proxy authentication username
+ pass=password     -- proxy authentication password
+ prefix64=<prefix> -- nat64 prefix address
+
+ NAT64 conversion failed, auto downgrade: prefix64 -> proxyip -> direct
 
  opt_flowu_ctl < env.opt_flowu_ctl < url flowu_ctl -- empty value default
  opt_flowd_ctl < env.opt_flowd_ctl < url flowd_ctl -- empty value default
 
- is_fproxyip=1 -- force use nat64/proxyip (all traffic is relayed through nat64)
-
- ws_path config prefix64: /?ed=2048&prefix64=2602:fc59:11:64::
- ws_path config proxyip: /?ed=2048&prefix64=&proxyip=<ProxyIP>&proxyip_port=
+ ws_path config prefix64: /?ed=2048&proxy=proxyip:///prefix64=2602:fc59:11:64::
+ ws_path config proxyip: /?ed=2048&proxy=proxyip://172.71.218.190
  xhttp_path: /xhttp/
 
 Tools
@@ -67,6 +72,7 @@ Src
  worker.js        -- Edge tunnel implementation with speed limit
  tls12_client.js  -- A simple implementation of TLSv1.2 client
  tls12_example.js -- Test example of TLSv1.2 client on NodeJS
+ tunnel_client.js -- A simple implementation of Tunnel client
 
 Reference
 
