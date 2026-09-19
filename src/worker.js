@@ -343,7 +343,7 @@ export default {
           return new Response(await get_config(obj.uuid, hostname),
             { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
         case "/geoip":
-          return new Response(await get_geoip(request, obj.proxyip),
+          return new Response(await get_geoip(obj, request),
             { status: 200, headers: { "Content-Type": "application/json; charset=utf-8" } });
         default:
           return new Response(JSON.stringify(request.cf, null, 2),
@@ -359,10 +359,11 @@ async function get_config(uuid, hostname) {
   return `${uuid} ${hostname}`;
 }
 
-async function get_geoip(request, host) {
+async function get_geoip(obj, request) {
   const http_req = "GET /geoip HTTP/1.1\r\n" + "Host: api.ip.sb\r\n"
     + "Accept: application/json\r\n" + "Connection: close\r\n\r\n";
-  const socket = connect({ hostname: host || "172.71.218.190", port: 443 });
+  const socket = await tcpsocket_connect(obj, "api.ip.sb", 443, 3);
+  if (!socket) return JSON.stringify({ cf: request.cf, ipinfo: {} }, null, 2);
   const tls = new TLS12_Client(socket, { sni: "api.ip.sb" });
   await tls.handshake(); await tls.write(textencode(http_req));
   const chunks = [], http = new HTTP_Reader();
