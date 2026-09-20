@@ -253,7 +253,10 @@ async function stream_pipetwo(obj, readable, writable) {
       } /* tcp */
       await remote_pipe(obj, remote_stream, down_writable, buffer.buffer);
     },
-    close() { console.log("readable pipetwo close"); remote_close(); },
+    close() {
+      console.log("readable pipetwo close"); remote_close();
+      if (!(remote_stream.writer || remote_stream.socket)) down_close();
+    },
     abort(reason) { console.log("readable pipetwo abort", reason); }
   })).catch((error) => {
     console.log("readable pipetwo error", error); remote_close(); down_close();
