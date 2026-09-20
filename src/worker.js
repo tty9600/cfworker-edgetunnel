@@ -128,7 +128,7 @@ async function tcpsocket_connect(obj, host, port, type) {
     const url_user = params.get("user"), url_pass = params.get("pass");
     switch (params.get("type")) {
       case "http": { console.log("http tunnel connection");
-        const socket = await tcpsocket(url_host, url_port);
+        const socket = await tcpsocket(url_host, url_port || "1080");
         return await HTTP_Tunnel(socket, host, port, url_user, url_pass);
       }
       case "socks5": { console.log("socks5 tunnel connection");
@@ -328,7 +328,10 @@ function set_params(env, url) {
 export default {
   async fetch(request, env, ctx) {
     try {
-      const url = new URL(request.url);
+      let url = new URL(request.url);
+      if (url.pathname.startsWith("/xhttp/clash/")) { /* HACK */
+        url = new URL(url.origin + decodeURIComponent(url.pathname));
+      }
       const obj = set_params(env, url);
       if (request.headers.get("sec-websocket-protocol")) {
         return await ws_handle(obj, request);

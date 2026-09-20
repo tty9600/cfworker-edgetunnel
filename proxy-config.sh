@@ -9608,7 +9608,7 @@ clash_xhttp_node() {
     client-fingerprint: chrome
     network: xhttp
     xhttp-opts:
-      path: /xhttp/${url_params/&/?}
+      path: /xhttp/clash/${url_params/&/?}
       host: $host
       mode: stream-one
 EOF
@@ -9702,10 +9702,12 @@ EOF
 			opt_urlparams=$(url_setparam "$opt_urlparams" "proxy" "$opt_proxy")
 		fi
 
+
 		if test "x$opt_type" = "xws"; then
 			clash_ws_node "$opt_uuid" "$opt_preip" "$opt_port" "$opt_host" \
 				"$opt_name" "$opt_isech" "$opt_urlparams"
 		else
+			opt_urlparams=$(url_setparam "$opt_urlparams" "e" "")
 			clash_xhttp_node "$opt_uuid" "$opt_preip" "$opt_port" "$opt_host" \
 				"$opt_name" "$opt_isech" "$opt_urlparams"
 		fi
