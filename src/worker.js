@@ -128,8 +128,34 @@ async function tcpsocket_connect(obj, host, port, type) {
     const url_user = params.get("user"), url_pass = params.get("pass");
     switch (params.get("type")) {
       case "http": { console.log("http tunnel connection");
-        const socket = await tcpsocket(url_host, url_port || "1080");
+        const socket = await tcpsocket(url_host, url_port || "80");
         return await HTTP_Tunnel(socket, host, port, url_user, url_pass);
+      }
+      case "https": { console.log("https tunnel connection");
+        const socket = await tcpsocket(url_host, url_port || "443");
+        const tls = new TLS12_Client(socket, { sni: url_host });
+        await tls.handshake(); let _is_closed = false;
+        const _close = async () => {
+          if (!_is_closed) { socket.close(); _is_closed = true; }
+        };
+        const _readable = new ReadableStream({
+          async start(controller) {
+            try {
+              while (!_is_closed) {
+                const { value, done } = await tls.read();
+                if (done) break;
+                controller.enqueue(value.buffer);
+              } controller.close();
+            } catch (error) { controller.error(error); _close(); }
+          },
+          cancel() { _close(); }
+        });
+        const _writable = new WritableStream({
+          async write(chunk) { await tls.write(chunk); },
+          abort() { _close(); }
+        });
+        const _socket = { readable: _readable, writable: _writable, close: _close };
+        return await HTTP_Tunnel(_socket, host, port, url_user, url_pass);
       }
       case "socks5": { console.log("socks5 tunnel connection");
         const socket = await tcpsocket(url_host, url_port);
@@ -143,7 +169,7 @@ async function tcpsocket_connect(obj, host, port, type) {
       }
     } return null;
   };
-  if (url_all) { /* proxy all traffic */
+  if (url_all == 1) { /* proxy all traffic */
     try { return await proxy_connect(); } catch { return null; }
   } try { return await tcpsocket(host, port); } catch { /* retry */
     try { return await proxy_connect(); } catch { return null; }

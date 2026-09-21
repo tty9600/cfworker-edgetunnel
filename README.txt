@@ -46,6 +46,7 @@ Variable
 
  proxyip://[<addr>[:<port>]]/[prefix64=<prefix>]/[all=[1]]
  http://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
+ https://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
  socks5://<addr>[:<port>]/[user=username]/[pass=password]/[all=[1]]
 
  all=1             -- global proxy all traffic
