@@ -452,14 +452,13 @@ export class TLS12_Client {
 
   async write(data) {
     const plaintext = new Uint8Array(data); if (!plaintext.length) return;
-    const writer = this.socket.writable.getWriter(); const record = [];
+    const writer = this.socket.writable.getWriter();
     try {
       for (let offset = 0; offset < plaintext.length; offset += 16384) {
         const chunk = plaintext.slice(offset, offset + 16384);
         const ciphertext = await this.tls12_encrypt(chunk, 0x17);
-        record.push(build_client_record(ciphertext, 0x17).record);
+        await writer.write(build_client_record(ciphertext, 0x17).record);
       }
-      await writer.write(chunkscat_arr8(...record));
     } finally { writer.releaseLock(); }
   }
 

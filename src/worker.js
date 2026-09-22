@@ -56,6 +56,51 @@ function flow_step(totals) { /* sleep */
   }; return new Promise(resolve => setTimeout(resolve, delay()));
 }
 
+function create_async_microtask_queue(write) { /* chunk merge */
+  const chunk_size = 64 * 1024;
+  let buffer = new Uint8Array(chunk_size), buffer_length = 0;
+  let timerid = null, is_queue = false, draining = null;
+  const flush = async () => {
+    if (timerid) { clearTimeout(timerid); timerid = null; }
+    is_queue = false;
+    if (!buffer_length || draining) return draining;
+    draining = write(buffer.slice(0, buffer_length)).finally(() => {
+      draining = null; buffer_length = 0;
+    }); return draining;
+  };
+  const sched = async () => {
+    if (timerid || is_queue || draining) return draining;
+    is_queue = true;
+    queueMicrotask(() => {
+      is_queue = false;
+      if (!buffer_length || timerid || draining) return draining;
+      if ((chunk_size - buffer_length) < 512) return flush();
+      timerid = setTimeout(() => {
+        timerid = null; if (!buffer_length || draining) return;
+        void flush();
+      }, 3);
+    });
+  };
+  const enqueue = async (chunk) => {
+    chunk = new Uint8Array(chunk);
+    for (let offset = 0; offset < chunk.length; ) {
+      if (draining) await draining;
+      const rem_length = chunk.length - offset;
+      if (!buffer_length && rem_length >= chunk_size) {
+        const length = Math.min(chunk_size, chunk.length - offset);
+        await write(chunk.slice(offset, offset + length));
+        offset += length; continue;
+      }
+      const length = Math.min(chunk_size - buffer_length, rem_length);
+      buffer.set(chunk.slice(offset, offset + length), buffer_length);
+      buffer_length += length; offset += length;
+      if (buffer_length == chunk_size || (chunk_size - buffer_length) < 512) {
+        await flush();
+      } else { await sched(); }
+    }
+  }; return { flush: flush, enqueue: enqueue };
+}
+
 async function get_domain_v4(domain) {
   try {
     const resp = await fetch(`https://dns.google/resolve?name=${domain}&type=A`,
@@ -91,15 +136,17 @@ function vls_parse(header, uuid) {
   const p = new DataView(buf.slice(f + 1, f + 3).buffer).getUint16(0);
   const t = buf.slice(f + 3, f + 4)[0]; f += 4; if (t == 3) f += 12;
   if ((t == 1 || t == 3) && buf.length < (f + 4)) return { more: true };
-  switch (t) { case 1: h = buf.slice(f, f + 4).join('.'); f += 4; break;
-    case 2: const l = buf.slice(f, f + 1)[0]; f += 1;
-      if (buf.length < (f + l)) return { more: true };
-      h = textdecode(buf.slice(f, f + l)); f += l; break;
+  switch (t) {
+    case 1: h = buf.slice(f, f + 4).join('.'); f += 4; break; /* ipv4 */
+    case 2: const n = buf.slice(f, f + 1)[0]; f += 1; /* domain */
+      if (buf.length < (f + n)) return { more: true };
+      h = textdecode(buf.slice(f, f + n)); f += n; break;
     case 3: const v6 = new DataView(buf.slice(f - 12, f + 4).buffer); h = [];
-      for (let i = 0; i < 8; i++) { h.push(v6.getUint16(i * 2).toString(16)
-        .padStart(4, '0')); } h = '[' + h.join(':') + ']'; f += 4; break;
+      for (let i = 0; i < 8; i++) {
+        h.push(v6.getUint16(i * 2).toString(16).padStart(4, '0')); /* ipv6 */
+      } h = '[' + h.join(':') + ']'; f += 4; break;
   } if (!h) return { error: true, message: "invalid address" };
-  return { error: false, version: v, is_udp: y, type: t, host: h, port: p, offset: f };
+  return { version: v, is_udp: y, type: t, host: h, port: p, offset: f };
 }
 
 function get_proxy_params(url) {
@@ -116,15 +163,15 @@ function get_proxy_params(url) {
 }
 
 async function tcpsocket_connect(obj, host, port, type) {
+  const params = get_proxy_params(obj.proxy);
+  const url_all = params.get("all"), url_prefix64 = params.get("prefix64");
   const tcpsocket = async (host, port) => {
     console.log(`tcpsocket connect to ${host} ${port}`);
     const socket = connect({ hostname: host, port: port });
     await socket.opened; return socket;
-  }
-  const params = get_proxy_params(obj.proxy);
-  const url_host = params.get("host"), url_port = params.get("port");
-  const url_all = params.get("all"), url_prefix64 = params.get("prefix64");
+  };
   const proxy_connect = async () => {
+    const url_host = params.get("host"), url_port = params.get("port");
     const url_user = params.get("user"), url_pass = params.get("pass");
     switch (params.get("type")) {
       case "http": { console.log("http tunnel connection");
@@ -139,14 +186,15 @@ async function tcpsocket_connect(obj, host, port, type) {
           if (!_is_closed) { socket.close(); _is_closed = true; }
         };
         const _readable = new ReadableStream({
-          async start(controller) {
+          async pull(controller) {
+            if (_is_closed) return;
             try {
-              while (!_is_closed) {
-                const { value, done } = await tls.read();
-                if (done) break;
-                controller.enqueue(value.buffer);
-              } controller.close();
-            } catch (error) { controller.error(error); _close(); }
+              const { value, done } = await tls.read();
+              if (done) { controller.close(); _close(); return; }
+              controller.enqueue(value);
+            } catch (error) {
+              if (!_is_closed) { controller.error(error); _close(); }
+            }
           },
           cancel() { _close(); }
         });
@@ -193,9 +241,9 @@ async function dns_handle(obj, remote_stream, down_writable) {
     transform(chunk, controller) {
       buffer = chunkscat_arr8(buffer, new Uint8Array(chunk));
       while (buffer.length >= 2) {
-        const length = new DataView(buffer.buffer).getUint16(0);
-        if (buffer.length < (2 + length)) break;
-        const frame = buffer.slice(2, 2 + length); buffer = buffer.slice(2 + length);
+        const length = new DataView(buffer.buffer).getUint16(0) + 2;
+        if (buffer.length < length) break;
+        const frame = buffer.slice(2, length); buffer = buffer.slice(length);
         controller.enqueue(frame.buffer);
       }
     } });
@@ -230,9 +278,15 @@ async function stream_pipetwo(obj, readable, writable) {
     }
   };
   const down_writer = writable.getWriter(); /* download */
+  const down_queue = create_async_microtask_queue(async (chunk) => {
+    await down_writer.write(chunk);
+    d_totals += chunk.byteLength; if ((d_totals - d_count) > d_threshold) {
+      await flow_step(d_totals); d_count = d_totals;
+    }
+  });
   const down_close = async () => {
     if (down_closed) { console.log("writable pipetwo is closed"); return; }
-    console.log("writable pipetwo close");
+    console.log("writable pipetwo close"); await down_queue.flush();
     remote_close(); down_writer.close(); down_closed = true;
   };
   const down_write = async (chunk) => { /* to local */
@@ -240,10 +294,7 @@ async function stream_pipetwo(obj, readable, writable) {
       if (down_header) {
         chunk = chunkscat_arr8(down_header, new Uint8Array(chunk)).buffer;
         down_header = null;
-      } await down_writer.write(chunk);
-      d_totals += chunk.byteLength; if ((d_totals - d_count) > d_threshold) {
-        await flow_step(d_totals); d_count = d_totals;
-      }
+      } await down_queue.enqueue(chunk);
     } catch (error) { console.log("writable pipetwo error", error); down_close(); }
   };
   const down_writable = { close: down_close, write: down_write };
