@@ -481,7 +481,7 @@ export class TLS12_Client {
       const reader = this.socket.readable.getReader();
       try {
         const { value, done } = await this.read_chunk(reader);
-        if (done) return { value: null, done: true };
+        if (done) throw new Error("TLS server connection abort");
         this.record_reader.put(value);
       } finally { reader.releaseLock(); }
     }
