@@ -58,8 +58,8 @@ function flow_step(totals) { /* sleep */
 
 function create_async_microtask_queue(write) { /* chunk merge */
   const chunk_size = 64 * 1024;
-  let buffer = new Uint8Array(chunk_size), buffer_length = 0;
-  let timerid = null, is_queue = false, draining = null;
+  let buffer = new Uint8Array(chunk_size), buffer_length = 0, seq = 0;
+  let timerid = null, is_queue = false, is_closed = false, draining = null;
   const flush = async () => {
     if (timerid) { clearTimeout(timerid); timerid = null; }
     is_queue = false;
@@ -82,23 +82,37 @@ function create_async_microtask_queue(write) { /* chunk merge */
     });
   };
   const enqueue = async (chunk) => {
-    chunk = new Uint8Array(chunk);
-    for (let offset = 0; offset < chunk.length; ) {
-      if (draining) await draining;
-      const rem_length = chunk.length - offset;
-      if (!buffer_length && rem_length >= chunk_size) {
-        const length = Math.min(chunk_size, chunk.length - offset);
-        await write(chunk.slice(offset, offset + length));
-        offset += length; continue;
+    if (is_closed) throw new Error("queue is closed");
+    chunk = new Uint8Array(chunk); seq++;
+    try {
+      for (let offset = 0; offset < chunk.length; ) {
+        if (draining) await draining;
+        const rem_length = chunk.length - offset;
+        if (!buffer_length && rem_length >= chunk_size) {
+          const length = Math.min(chunk_size, chunk.length - offset);
+          await write(chunk.slice(offset, offset + length));
+          offset += length; continue;
+        }
+        const length = Math.min(chunk_size - buffer_length, rem_length);
+        buffer.set(chunk.slice(offset, offset + length), buffer_length);
+        buffer_length += length; offset += length;
+        if (buffer_length == chunk_size || (chunk_size - buffer_length) < 512) {
+          await flush();
+        } else { await sched(); }
       }
-      const length = Math.min(chunk_size - buffer_length, rem_length);
-      buffer.set(chunk.slice(offset, offset + length), buffer_length);
-      buffer_length += length; offset += length;
-      if (buffer_length == chunk_size || (chunk_size - buffer_length) < 512) {
-        await flush();
-      } else { await sched(); }
+    } finally { seq--; }
+  };
+  const close = async () => {
+    if (is_closed) {
+      while (seq || draining) {
+        if (draining) { await draining; } else { await Promise.resolve(); }
+      } return;
     }
-  }; return { flush: flush, enqueue: enqueue };
+    is_closed = true;
+    while (seq || draining) {
+      if (draining) { await draining; } else { await Promise.resolve(); }
+    } await flush();
+  }; return { flush: flush, close: close, enqueue: enqueue };
 }
 
 async function get_domain_v4(domain) {
@@ -286,8 +300,9 @@ async function stream_pipetwo(obj, readable, writable) {
   });
   const down_close = async () => {
     if (down_closed) { console.log("writable pipetwo is closed"); return; }
-    console.log("writable pipetwo close"); await down_queue.flush();
-    remote_close(); down_writer.close(); down_closed = true;
+    console.log("writable pipetwo close"); down_closed = true;
+    await down_queue.close(); remote_close();
+    await down_writer.ready; down_writer.close();
   };
   const down_write = async (chunk) => { /* to local */
     try {
