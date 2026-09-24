@@ -277,7 +277,7 @@ async function dns_handle(obj, remote_stream, down_writable) {
   remote_stream.writer = transform.writable.getWriter();
 }
 
-async function stream_pipetwo(obj, readable, writable) {
+async function stream_pipetwo(obj, readable, writable, close_delay) {
   let u_threshold = flow_conv(obj.flowu_ctl), u_totals = 0, u_count = 0;
   let d_threshold = flow_conv(obj.flowd_ctl), d_totals = 0, d_count = 0;
   let buffer = new Uint8Array(0), vls = {}, remote_stream = {}, is_dns = false;
@@ -301,8 +301,9 @@ async function stream_pipetwo(obj, readable, writable) {
   const down_close = async () => {
     if (down_closed) { console.log("writable pipetwo is closed"); return; }
     console.log("writable pipetwo close"); down_closed = true;
-    await down_queue.close(); remote_close();
-    await down_writer.ready; down_writer.close();
+    await down_queue.close(); remote_close(); await down_writer.ready;
+    await new Promise(resolve => setTimeout(resolve, close_delay));
+    down_writer.close();
   };
   const down_write = async (chunk) => { /* to local */
     try {
@@ -313,7 +314,7 @@ async function stream_pipetwo(obj, readable, writable) {
     } catch (error) { console.log("writable pipetwo error", error); down_close(); }
   };
   const down_writable = { close: down_close, write: down_write };
-  readable.pipeTo(new WritableStream({ /* upload */
+  await readable.pipeTo(new WritableStream({ /* upload */
     async write(chunk) {
       if (remote_stream.writer) { /* to remote */
         return remote_stream.writer.write(chunk);
@@ -390,13 +391,13 @@ async function ws_handle(obj, request) {
     async write(chunk) { if (ws.readyState === 1) ws.send(chunk); },
     close() { console.log("writable stream close"); ws_close(ws); }
   });
-  stream_pipetwo(obj, readable, writable);
+  stream_pipetwo(obj, readable, writable, 0);
   return new Response(null, { status: 101, webSocket: client });
 }
 
-async function xhttp_handle(obj, request) {
-  const bridge = new IdentityTransformStream();
-  stream_pipetwo(obj, request.body, bridge.writable);
+async function xhttp_handle(obj, request, ctx) {
+  const bridge = new TransformStream();
+  ctx.waitUntil(stream_pipetwo(obj, request.body, bridge.writable, 50));
   return new Response(bridge.readable, { status: 200, headers: {
     "Content-Type": "application/octet-stream",
     "Cache-Control": "no-store",
@@ -433,7 +434,7 @@ export default {
       } else if (request.method == "POST") {
         if (!request.body || !url.pathname.startsWith("/xhttp/"))
           return new Response("Not Found", { status: 404 });
-        return await xhttp_handle(obj, request);
+        return await xhttp_handle(obj, request, ctx);
       }
       const hostname = request.headers.get("Host");
       switch (url.pathname) {
